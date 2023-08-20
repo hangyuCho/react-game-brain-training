@@ -2,8 +2,10 @@ import { useEffect, useState } from "react"
 import { 
   ConditionStageProps,
   GameStageProps,
+  HitAreaProps,
   ResultStageProps,
-  TargetButtonProps
+  TargetButtonProps,
+  TimerProps
 } from "../props/index" 
 
 const ConditionStage = ({ onNextStage, onSetRounds, onSetTimeLimit } : ConditionStageProps) => {
@@ -16,7 +18,7 @@ const ConditionStage = ({ onNextStage, onSetRounds, onSetTimeLimit } : Condition
           <input type="number" className="border" onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSetRounds(Number(e.target.value))} />
         </div>
         <div className="flex gap-4">
-          <span>Time Limit</span>
+          <span>Time Limit(seconds)</span>
           <input type="number" className="border" onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSetTimeLimit(Number(e.target.value))}/>
         </div>
       </div>
@@ -34,35 +36,49 @@ const shuffleArray = (arr: any[]) => {
            .map(({value}) => value)
 }
 
-const GameStage = ({ onNextStage, onSetHit, rounds, playTimeLimit } : GameStageProps) => {
+const Timer = ( { playTimeLimit, onNextStage } : TimerProps ) => {
+  const [timeLimit, setTimeLimit] = useState(playTimeLimit ?? 0)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLimit((prev: number) => prev -1)
+    }, 1000)
+    if (timeLimit === 0) {
+      onNextStage()
+    }
+    return () => clearInterval(timer)
+  })
+  return (
+    <div>
+      Time Limit : {timeLimit}
+    </div>
+  )
+}
+
+const HitArea = ( { onSetHit, rounds, onNextStage }: HitAreaProps) => {
   const [currentRound, setCurrentRound] = useState(0)
   const TargetButton = ({onExecute, label, isTarget} : TargetButtonProps) => {
     return (
       <button className={`w-32 h-32 border rounded-md bg-${isTarget ? "rose" : "sky"}-300`} type="button" onClick={() => onExecute ? onExecute() : ""}>{label}</button>
     )
   }
+
   const onSetHitWithRoundUp = () => {
-    onSetHit()
-    setCurrentRound((prev) => prev + 1)
+    onSetHit((prev:number) => prev +1)
+    setCurrentRound((prev: number) => prev + 1)
   }
 
   const onSetRoundUp = () => {
-    setCurrentRound((prev) => prev + 1)
+    setCurrentRound((prev: number) => prev + 1)
   }
   useEffect(() => {
-    const timer = setInterval(() => {
-
-    }, 1000)
     if (rounds === currentRound) {
       onNextStage()
     }
   })
   return (
-    <div className="flex justify-center flex-col items-center gap-4">
-      <div>
-        CurrentRound : {currentRound + 1} <br/> 
-        RemaindRound : {-(currentRound - rounds)}
-      </div>
+    <div>
+      CurrentRound : {currentRound + 1} <br/> 
+      RemaindRound : {-(currentRound - rounds)} <br/>
       <div className="flex justify-center flex-wrap w-[16rem] h-[16rem]">
         {
           shuffleArray([
@@ -74,6 +90,17 @@ const GameStage = ({ onNextStage, onSetHit, rounds, playTimeLimit } : GameStageP
             return (button)
           })
         }
+      </div>
+    </div>
+  )
+}
+
+const GameStage = ({ onNextStage, onSetHit, rounds, playTimeLimit } : GameStageProps) => {
+  return (
+    <div className="flex justify-center flex-col items-center gap-4">
+      <div>
+        <Timer playTimeLimit={playTimeLimit} onNextStage={onNextStage} />
+        <HitArea onSetHit={onSetHit} rounds={rounds} onNextStage={onNextStage} />
       </div>
       <div className="bg-sky-300"></div>
     </div>
@@ -100,9 +127,6 @@ const GameArea = () => {
   const [playTimeLimit, setTimeLimit] = useState(0)
   const nextStage = () => {
     setStage((prev) => prev >= 3 ? 1 : prev + 1)
-  }
-  const onSetHit = () => {
-    setHit((prev) => prev + 1)
   }
 
   const onSetRounds = (fixedRounds: number) => {
@@ -135,7 +159,7 @@ const GameArea = () => {
         <br/>
       </div>
       {
-        stage === 2 ? <GameStage onNextStage={nextStage} onSetHit={onSetHit} rounds={rounds} playTimeLimit={playTimeLimit} /> : 
+        stage === 2 ? <GameStage onNextStage={nextStage} onSetHit={setHit} rounds={rounds} playTimeLimit={playTimeLimit} /> : 
         stage === 3 ? <ResultStage onNextStage={nextStage} rounds={rounds} hit={hit}  onReset={onReset}  /> : 
                      <ConditionStage onNextStage={nextStage} onSetRounds={onSetRounds} onSetTimeLimit={onSetTimeLimit} />
       }

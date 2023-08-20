@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react"
+
 interface BaseStageProps {
   onNextStage: () => void
 }
@@ -7,7 +9,7 @@ interface ConditionStageProps extends BaseStageProps {
 }
 
 interface GameStageProps extends BaseStageProps {
-  onSetHit: () => void
+  onSetHit: Dispatch<SetStateAction<number>>
   rounds: number
   playTimeLimit?: number
 }
@@ -24,10 +26,23 @@ interface TargetButtonProps {
   isTarget?: boolean
 }
 
+interface TimerProps {
+  playTimeLimit?: number
+  onNextStage: () => void
+}
+
+interface HitAreaProps {
+  onSetHit: Dispatch<SetStateAction<number>>
+  rounds: number
+  onNextStage: () => void
+}
+
 
 export {
   type ConditionStageProps,
   type GameStageProps,
   type ResultStageProps,
-  type TargetButtonProps
+  type TargetButtonProps,
+  type TimerProps,
+  type HitAreaProps
 }
