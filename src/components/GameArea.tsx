@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { increase, reset } from "../store/hitReducer"
 import { 
   ConditionStageProps,
   GameStageProps,
@@ -7,6 +9,8 @@ import {
   TargetButtonProps,
   TimerProps
 } from "../props/index" 
+
+
 
 const ConditionStage = ({ onNextStage, onSetRounds, onSetTimeLimit } : ConditionStageProps) => {
   
@@ -54,7 +58,8 @@ const Timer = ( { playTimeLimit, onNextStage } : TimerProps ) => {
   )
 }
 
-const HitArea = ( { onSetHit, rounds, onNextStage }: HitAreaProps) => {
+const HitArea = ( { rounds, onNextStage }: HitAreaProps) => {
+  const dispatch = useDispatch()
   const [currentRound, setCurrentRound] = useState(0)
   const TargetButton = ({onExecute, label, isTarget} : TargetButtonProps) => {
     return (
@@ -63,8 +68,8 @@ const HitArea = ( { onSetHit, rounds, onNextStage }: HitAreaProps) => {
   }
 
   const onSetHitWithRoundUp = () => {
-    onSetHit((prev:number) => prev +1)
     setCurrentRound((prev: number) => prev + 1)
+    dispatch(increase(1))
   }
 
   const onSetRoundUp = () => {
@@ -95,26 +100,31 @@ const HitArea = ( { onSetHit, rounds, onNextStage }: HitAreaProps) => {
   )
 }
 
-const GameStage = ({ onNextStage, onSetHit, rounds, playTimeLimit } : GameStageProps) => {
+const GameStage = ({ onNextStage, rounds, playTimeLimit } : GameStageProps) => {
   return (
     <div className="flex justify-center flex-col items-center gap-4">
       <div>
         <Timer playTimeLimit={playTimeLimit} onNextStage={onNextStage} />
-        <HitArea onSetHit={onSetHit} rounds={rounds} onNextStage={onNextStage} />
+        <HitArea rounds={rounds} onNextStage={onNextStage} />
       </div>
       <div className="bg-sky-300"></div>
+      <div className="bg-rose-300"></div>
     </div>
   )
 }
 
-const ResultStage = ({ onNextStage, rounds, hit, onReset } : ResultStageProps) => {
+const ResultStage = ({ onNextStage, rounds, onReset } : ResultStageProps) => {
+  const hits = useSelector((state: any) => state.hit.number)
+  const dispatch = useDispatch()
   const onResetGame = () => {
     onReset()
     onNextStage()
+    dispatch(reset(0))
   }
   return (
     <div>
-      {`${hit}hit of total ${rounds} rounds`}
+      {`${hits}hit of total ${rounds} rounds`}
+      <hr/>
       <button className="border px-2 py-1 rounded-sm " type="button" onClick={() => onResetGame() }>next</button>
     </div>
   )
@@ -122,7 +132,6 @@ const ResultStage = ({ onNextStage, rounds, hit, onReset } : ResultStageProps) =
 
 const GameArea = () => {
   const [stage, setStage] = useState(1)
-  const [hit, setHit] = useState(0)
   const [rounds, setRounds] = useState(0)
   const [playTimeLimit, setTimeLimit] = useState(0)
   const nextStage = () => {
@@ -136,7 +145,6 @@ const GameArea = () => {
     setTimeLimit(fixedTimeLimit)
   }
   const onReset = () => {
-    setHit(0)
     setRounds(0)
     setTimeLimit(0)
   }
@@ -145,9 +153,6 @@ const GameArea = () => {
       <div className="flex gap-2 flex-col">
         <div>
           stage    : {stage}
-        </div>
-        <div>
-          hit      : {hit}
         </div>
         <div>
           rounds : {rounds}
@@ -159,8 +164,8 @@ const GameArea = () => {
         <br/>
       </div>
       {
-        stage === 2 ? <GameStage onNextStage={nextStage} onSetHit={setHit} rounds={rounds} playTimeLimit={playTimeLimit} /> : 
-        stage === 3 ? <ResultStage onNextStage={nextStage} rounds={rounds} hit={hit}  onReset={onReset}  /> : 
+        stage === 2 ? <GameStage onNextStage={nextStage} rounds={rounds} playTimeLimit={playTimeLimit} /> : 
+        stage === 3 ? <ResultStage onNextStage={nextStage} rounds={rounds} onReset={onReset}  /> : 
                      <ConditionStage onNextStage={nextStage} onSetRounds={onSetRounds} onSetTimeLimit={onSetTimeLimit} />
       }
     </div>

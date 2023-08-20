@@ -9,14 +9,12 @@ interface ConditionStageProps extends BaseStageProps {
 }
 
 interface GameStageProps extends BaseStageProps {
-  onSetHit: Dispatch<SetStateAction<number>>
   rounds: number
   playTimeLimit?: number
 }
 
 interface ResultStageProps extends BaseStageProps {
   rounds: number
-  hit: number
   onReset: () => void
 }
 
@@ -32,7 +30,6 @@ interface TimerProps {
 }
 
 interface HitAreaProps {
-  onSetHit: Dispatch<SetStateAction<number>>
   rounds: number
   onNextStage: () => void
 }
